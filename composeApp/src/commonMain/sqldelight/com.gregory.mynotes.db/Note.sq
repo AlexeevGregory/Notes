@@ -1,0 +1,214 @@
+CREATE TABLE IF NOT EXISTS note (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    book_id INTEGER DEFAULT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    is_favorite INTEGER NOT NULL DEFAULT 0,
+    is_deleted INTEGER NOT NULL DEFAULT 0,
+    last_sync_timestamp INTEGER NOT NULL,
+    deleted_at INTEGER DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS attachment (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    note_id INTEGER NOT NULL,
+    file_path TEXT NOT NULL,
+    file_name TEXT NOT NULL,
+    mime_type TEXT,
+    attachment_type INTEGER NOT NULL,
+    FOREIGN KEY(note_id) REFERENCES note(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS notebook (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    color TEXT DEFAULT '#FFFFFF',
+    is_deleted INTEGER NOT NULL DEFAULT 0,
+    last_sync_timestamp INTEGER NOT NULL,
+    deleted_at INTEGER DEFAULT NULL
+);
+
+-- =========================
+-- ATTACHMENTS
+-- =========================
+
+selectAttachmentById:
+SELECT * FROM attachment WHERE id = ?;
+
+updateAttachment:
+UPDATE attachment
+SET file_path = ?, file_name = ?, mime_type = ?, attachment_type = ?
+WHERE id = ?;
+
+selectAttachmentsForNote:
+SELECT * FROM attachment
+WHERE note_id = ?
+ORDER BY id;
+
+getLastInsertedIdAttachment:
+SELECT id
+FROM attachment
+ORDER BY id DESC
+LIMIT 1;
+
+insertAttachment:
+INSERT INTO attachment(
+    note_id,
+    file_path,
+    file_name,
+    mime_type,
+    attachment_type
+)
+VALUES (?, ?, ?, ?, ?);
+
+deleteAttachmentById:
+DELETE FROM attachment
+WHERE id = ?;
+
+deleteAttachmentsForNote:
+DELETE FROM attachment
+WHERE note_id = ?;
+
+-- =========================
+-- NOTES
+-- =========================
+
+selectAll:
+SELECT * FROM note
+ORDER BY is_favorite DESC, timestamp DESC;
+
+selectNoteById:
+SELECT * FROM note
+WHERE id = ?;
+
+insertNote:
+INSERT INTO note(
+    title,
+    content,
+    timestamp,
+    is_favorite,
+    is_deleted,
+    last_sync_timestamp
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+getLastInsertedId:
+SELECT id
+FROM note
+ORDER BY id DESC
+LIMIT 1;
+
+insertExistingNote:
+INSERT INTO note(
+    id,
+    title,
+    content,
+    timestamp,
+    is_favorite,
+    is_deleted,
+    last_sync_timestamp
+)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+updateSyncedNote:
+UPDATE note
+SET
+    title = ?,
+    content = ?,
+    timestamp = ?,
+    is_favorite = ?,
+    is_deleted = ?,
+    last_sync_timestamp = ?
+WHERE id = ?;
+
+markNoteDeleted:
+UPDATE note
+SET
+    is_deleted = 1,
+    deleted_at = ?,
+    last_sync_timestamp = ?
+WHERE id = ?;
+
+restoreNote:
+UPDATE note
+SET is_deleted = 0,
+    last_sync_timestamp = ?,
+    deleted_at = NULL
+WHERE id = ?;
+
+deleteAllNotes:
+DELETE FROM attachment;
+DELETE FROM note;
+
+selectExpiredDeletedNotes:
+SELECT * FROM note
+WHERE is_deleted = 1
+AND deleted_at <= ?
+AND deleted_at IS NOT NULL;
+
+permanentlyDeleteExpiredNotes:
+DELETE FROM note
+WHERE is_deleted = 1
+AND deleted_at <= ?
+AND deleted_at IS NOT NULL;
+
+-- =========================
+-- NOTEBOOKS
+-- =========================
+
+selectAllNotebooks:
+SELECT * FROM notebook
+ORDER BY name;
+
+selectNotebookById:
+SELECT * FROM notebook
+WHERE id = ?;
+
+insertNotebook:
+INSERT INTO notebook(
+    name,
+    color,
+    last_sync_timestamp
+)
+VALUES (?, ?, ?);
+
+updateNotebook:
+UPDATE notebook
+SET
+    name = ?,
+    color = ?,
+    is_deleted = ?,
+    last_sync_timestamp = ?
+WHERE id = ?;
+
+markNotebookDeleted:
+UPDATE notebook
+SET
+    is_deleted = 1,
+    last_sync_timestamp = ?,
+    deleted_at = ?
+WHERE id = ?;
+
+restoreNotebook:
+UPDATE notebook
+SET
+    is_deleted = 0,
+    last_sync_timestamp = ?,
+    deleted_at = NULL
+WHERE id = ?;
+
+selectExpiredDeletedNotebooks:
+SELECT * FROM notebook
+WHERE is_deleted = 1
+AND deleted_at <= ?
+AND deleted_at IS NOT NULL;
+
+permanentlyDeleteNotebook:
+DELETE FROM notebook
+WHERE id = ?;
+
+detachNotebookFromNotes:
+UPDATE note
+SET book_id = NULL
+WHERE id = ?;
