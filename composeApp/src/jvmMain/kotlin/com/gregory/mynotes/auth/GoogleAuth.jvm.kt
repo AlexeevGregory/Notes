@@ -22,10 +22,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.SerializationException
 
 actual object GoogleAuth {
-    private const val CLIENT_ID = "398279470752-0d6o4d47bmej2i0njvln8f8fq50o01lk.apps.googleusercontent.com"
-    private const val CLIENT_SECRET = "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"
+    private const val CLIENT_ID = "your-client-id"
+    private const val CLIENT_SECRET = "your-client-secret"
     private const val REDIRECT_URI = "http://localhost:8080/callback"
-    private val apiKey = "AIzaSyC6cDgj6CIWpQy226Q4OTiLOAPKUWUDepE"
+    private val apiKey = "your-api-key"
 
 
     private val client = HttpClient(CIO) {

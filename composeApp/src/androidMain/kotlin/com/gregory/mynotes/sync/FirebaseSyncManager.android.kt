@@ -45,9 +45,9 @@ actual class FirebaseSyncManager actual constructor(
     init {
         requireNotNull(context) { "Android requires non-null Context" }
     }
-    private val projectId = "diplom-cd43a"
+    private val projectId = "your-project-id"
     private val baseUrl = "https://firestore.googleapis.com/v1/projects/$projectId/databases/default/documents"
-    private val bucket = "diplom-cd43a.firebasestorage.app"
+    private val bucket = "$projectId.firebasestorage.app"
     private val storageBaseUrl = "https://firebasestorage.googleapis.com/v0/b/$bucket/o"
 
     private fun buildStoragePath(noteId: Long, fileName: String): String {
